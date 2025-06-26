@@ -19,7 +19,7 @@ export default function Login({ onLogin }) {
       localStorage.setItem("loggedInUser", JSON.stringify(user));
       onLogin(user);
     } else {
-      setError("Forkert brugernavn eller adgangskode");
+      setError("Wrong Username or code");
     }
   };
 
@@ -29,7 +29,7 @@ export default function Login({ onLogin }) {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Brugernavn"
+          placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />

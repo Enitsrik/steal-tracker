@@ -18,7 +18,7 @@ function App() {
   const [type, setType] = useState("Treasure");
   const [amount, setAmount] = useState("");
 
-  // Gem bruger i localStorage ved login
+  // Hent bruger ved første load
   useEffect(() => {
     const stored = localStorage.getItem("loggedInUser");
     if (stored) setLoggedInUser(JSON.parse(stored));
@@ -71,28 +71,27 @@ function App() {
     document.body.removeChild(link);
   };
 
-  // Statistik
   const total = steals.reduce((acc, s) => acc + s.amount, 0);
   const treasure = steals.filter((s) => s.type === "Treasure");
   const bottles = steals.filter((s) => s.type === "Broken Bottles");
 
-  // Login-visning
   if (!loggedInUser) {
     return <Login onLogin={setLoggedInUser} />;
   }
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>💰 Steal Tracker</h1>
-      <p>
-        Logget ind som: <strong>{loggedInUser.username}</strong> (
-        {loggedInUser.role})
-      </p>
-      <button onClick={handleLogout}>Log ud</button>
+    <div className="centered-container">
+      <div className="header">
+        <h1>💰 Steal Tracker</h1>
+        <p>
+          Logget ind som: <strong>{loggedInUser.username}</strong> ({loggedInUser.role})
+        </p>
+        <button onClick={handleLogout}>Log ud</button>
+      </div>
 
-      <hr />
+      <div className="banner">Pass or Steal!</div>
 
-      <div style={{ marginTop: "1rem" }}>
+      <div style={{ margin: "1rem auto" }}>
         <input
           placeholder="Spillernavn"
           value={name}
@@ -127,7 +126,7 @@ function App() {
       <ul>
         {steals.map((s, i) => (
           <li key={i}>
-            {s.name} stjal {s.amount} ({s.type}) –{" "}
+            {s.name} stole {s.amount} ({s.type}) –{" "}
             {new Date(s.time).toLocaleString()}
           </li>
         ))}
