@@ -1,3 +1,4 @@
+/* Rod-element */
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -5,15 +6,18 @@
   text-align: center;
 }
 
+/* Logo (hvis du bruger det i fremtiden) */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -33,10 +37,55 @@
   }
 }
 
-.card {
-  padding: 2em;
+/* App layout */
+.centered-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 2rem;
 }
 
+/* Header med titel og login-info */
+.header {
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.header h1 {
+  font-size: 3rem;
+  color: #f3f3f3;
+  text-shadow: 0 0 10px #00ccff;
+  margin-bottom: 0.5rem;
+}
+
+/* Dekorativt banner */
+.banner {
+  background: linear-gradient(to right, #3ec6ff, #8be9ff);
+  border-radius: 10px;
+  padding: 1rem 2rem;
+  margin: 1rem auto;
+  width: fit-content;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  font-size: 1.5rem;
+  color: #1b1b1b;
+  font-weight: bold;
+}
+
+/* Kort til sektioner hvis du tilføjer flere */
+.card {
+  padding: 2em;
+  background: #222;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  margin: 1rem 0;
+  color: white;
+}
+
+/* Dokumentationslink eller lign. */
 .read-the-docs {
   color: #888;
+  font-size: 0.9rem;
 }
