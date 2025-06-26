@@ -18,7 +18,7 @@ function App() {
   const [type, setType] = useState("Treasure");
   const [amount, setAmount] = useState("");
 
-  // Hent bruger ved første load
+  // Gem bruger i localStorage ved login
   useEffect(() => {
     const stored = localStorage.getItem("loggedInUser");
     if (stored) setLoggedInUser(JSON.parse(stored));
@@ -71,6 +71,7 @@ function App() {
     document.body.removeChild(link);
   };
 
+  // Statistik
   const total = steals.reduce((acc, s) => acc + s.amount, 0);
   const treasure = steals.filter((s) => s.type === "Treasure");
   const bottles = steals.filter((s) => s.type === "Broken Bottles");
@@ -80,18 +81,26 @@ function App() {
   }
 
   return (
-    <div className="centered-container">
+    <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
       <div className="header">
         <h1>💰 Steal Tracker</h1>
-        <p>
-          Logget ind som: <strong>{loggedInUser.username}</strong> ({loggedInUser.role})
-        </p>
-        <button onClick={handleLogout}>Log ud</button>
       </div>
 
       <div className="banner">Pass or Steal!</div>
+      <div className="subtext">
+        Total Treasure given away so far: <span style={{ color: "#ffd700" }}>5,861,500</span>
+        <br />
+        (Counter updated on June 25, 2025)
+      </div>
 
-      <div style={{ margin: "1rem auto" }}>
+      <p>
+        Logget ind som: <strong>{loggedInUser.username}</strong> ({loggedInUser.role})
+      </p>
+      <button onClick={handleLogout}>Log ud</button>
+
+      <hr />
+
+      <div style={{ marginTop: "1rem" }}>
         <input
           placeholder="Spillernavn"
           value={name}
@@ -111,7 +120,7 @@ function App() {
       </div>
 
       <h3>📊 Statistik</h3>
-      <ul>
+      <ul style={{ textAlign: "left", display: "inline-block" }}>
         <li>Treasure steals: {treasure.length}</li>
         <li>Broken Bottles: {bottles.length}</li>
         <li>Total treasure stolen: {treasure.reduce((acc, s) => acc + s.amount, 0)}t</li>
@@ -123,7 +132,7 @@ function App() {
       )}
 
       <h3>📜 Log</h3>
-      <ul>
+      <ul style={{ textAlign: "left", display: "inline-block" }}>
         {steals.map((s, i) => (
           <li key={i}>
             {s.name} stole {s.amount} ({s.type}) –{" "}
