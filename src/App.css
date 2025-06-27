@@ -1,3 +1,4 @@
+/* Centrering og layout */
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -7,27 +8,33 @@
   font-family: Arial, sans-serif;
 }
 
+/* Overskrift */
 h1 {
   font-size: 3rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 
+/* Undertekst */
 .subtext {
   font-style: italic;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  color: #ccc;
 }
 
+/* Counter */
 .counter {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 .counter .number {
-  color: #facc15; 
+  color: #facc15;
+  font-weight: bold;
 }
 .counter .date {
   font-size: 0.9rem;
   color: #aaa;
 }
 
+/* Input-gruppe */
 .input-group {
   display: flex;
   flex-wrap: wrap;
@@ -44,6 +51,10 @@ h1 {
   border: none;
 }
 
+.input-group input[type="datetime-local"] {
+  min-width: 180px;
+}
+
 .input-group button {
   background: #111;
   color: white;
@@ -51,39 +62,43 @@ h1 {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.3s ease;
 }
 .input-group button:hover {
   background: #333;
 }
 
+/* Statistik og log */
 ul {
   list-style: none;
   padding: 0;
+  margin: 1rem 0;
 }
 ul li {
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
   text-align: left;
 }
 
-h3 {
-  margin-top: 2rem;
-}
+/* Knapper i loggen */
 ul li button {
   margin-left: 0.5rem;
   padding: 0.2rem 0.5rem;
   font-size: 0.9rem;
 }
 
+/* Eksportknap */
 button:has(svg), button:has(img) {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
 
+/* Global knapmargin */
 button {
-  margin: 0.5rem;
+  margin: 0.4rem;
 }
 
+/* Baggrund */
 body {
-  background-color: #1a1a1a;
+  background-color: #05399b;
 }

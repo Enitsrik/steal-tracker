@@ -1,6 +1,7 @@
 // App.jsx – Komplet version med tidfelt, redigering og sletning
 import { useState, useEffect } from "react";
-import Login from "./Login";
+import Login from "./Login.jsx";
+import "./App.css";
 
 const users = [
   { username: "admin", password: "hemmelig", role: "admin" },
