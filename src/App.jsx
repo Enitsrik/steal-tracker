@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import Login from "./Login";
 
-// Brugerdata
 const users = [
   { username: "admin", password: "hemmelig", role: "admin" },
   { username: "tracker", password: "1234", role: "user" }
@@ -17,14 +16,13 @@ function App() {
   const [name, setName] = useState("");
   const [type, setType] = useState("Treasure");
   const [amount, setAmount] = useState("");
+  const [customTime, setCustomTime] = useState("");
 
-  // Gem bruger i localStorage ved login
   useEffect(() => {
     const stored = localStorage.getItem("loggedInUser");
     if (stored) setLoggedInUser(JSON.parse(stored));
   }, []);
 
-  // Gem steals i localStorage
   useEffect(() => {
     localStorage.setItem("steals", JSON.stringify(steals));
   }, [steals]);
@@ -36,15 +34,18 @@ function App() {
 
   const handleAdd = () => {
     if (!name || !amount) return;
+
     const newEntry = {
       name,
       type,
       amount: parseFloat(amount),
-      time: Date.now()
+      time: customTime ? new Date(customTime).getTime() : Date.now()
     };
+
     setSteals([...steals, newEntry]);
-    setAmount("");
     setName("");
+    setAmount("");
+    setCustomTime("");
   };
 
   const exportToCSV = () => {
@@ -71,7 +72,6 @@ function App() {
     document.body.removeChild(link);
   };
 
-  // Statistik
   const total = steals.reduce((acc, s) => acc + s.amount, 0);
   const treasure = steals.filter((s) => s.type === "Treasure");
   const bottles = steals.filter((s) => s.type === "Broken Bottles");
@@ -82,30 +82,20 @@ function App() {
 
   return (
     <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
-      <div className="header">
-        <h1>💰 Steal Tracker</h1>
-      </div>
-
-      <div className="banner">Pass or Steal!</div>
-      <div className="subtext">
-        Total Treasure given away so far: <span style={{ color: "#ffd700" }}>5,861,500</span>
-        <br />
-        (Counter updated on June 25, 2025)
-      </div>
-
+      <h1>💰 Steal Tracker</h1>
+      <p>Pass or Steal!<br />
+        Total Treasure given away so far: <span style={{ color: "#fbd64a" }}>5,861,500</span><br />
+        <small>(Counter updated on June 25, 2025)</small>
+      </p>
       <p>
         Logget ind som: <strong>{loggedInUser.username}</strong> ({loggedInUser.role})
       </p>
       <button onClick={handleLogout}>Log ud</button>
 
-      <hr />
+      <hr style={{ margin: "2rem 0" }} />
 
-      <div style={{ marginTop: "1rem" }}>
-        <input
-          placeholder="Spillernavn"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+      <div>
+        <input placeholder="Spillernavn" value={name} onChange={(e) => setName(e.target.value)} />
         <select value={type} onChange={(e) => setType(e.target.value)}>
           <option value="Treasure">Treasure</option>
           <option value="Broken Bottles">Broken Bottles</option>
@@ -116,11 +106,16 @@ function App() {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
         />
+        <input
+          type="datetime-local"
+          value={customTime}
+          onChange={(e) => setCustomTime(e.target.value)}
+        />
         <button onClick={handleAdd}>Tilføj</button>
       </div>
 
       <h3>📊 Statistik</h3>
-      <ul style={{ textAlign: "left", display: "inline-block" }}>
+      <ul style={{ textAlign: "left" }}>
         <li>Treasure steals: {treasure.length}</li>
         <li>Broken Bottles: {bottles.length}</li>
         <li>Total treasure stolen: {treasure.reduce((acc, s) => acc + s.amount, 0)}t</li>
@@ -132,7 +127,7 @@ function App() {
       )}
 
       <h3>📜 Log</h3>
-      <ul style={{ textAlign: "left", display: "inline-block" }}>
+      <ul style={{ textAlign: "left" }}>
         {steals.map((s, i) => (
           <li key={i}>
             {s.name} stole {s.amount} ({s.type}) –{" "}
