@@ -1,56 +1,89 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.header {
-  text-align: center;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-}
-
-.header h1 {
-  font-size: 3rem;
-  color: #f3f3f3;
-  text-shadow: 0 0 10px #00ccff;
-  margin-bottom: 0.5rem;
-}
-
-.banner {
-  background: linear-gradient(to right, #3ec6ff, #8be9ff);
-  border-radius: 10px;
-  padding: 1rem 2rem;
-  margin: 1rem auto;
-  width: fit-content;
-  box-shadow: 0 0 20px rgba(0,0,0,0.3);
-  font-size: 1.2rem;
-  color: #1b1b1b;
-  font-weight: bold;
-}
-
-.subtext {
-  font-style: italic;
-  color: #ccc;
-  font-size: 1rem;
-  margin-top: 0.3rem;
-}
-
-button {
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  background: black;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
 .container {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  color: #f0f0f0;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtext {
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+.counter {
+  margin-bottom: 1rem;
+}
+.counter .number {
+  color: #facc15; 
+}
+.counter .date {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.input-group input,
+.input-group select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+}
+
+.input-group button {
+  background: #111;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.input-group button:hover {
+  background: #333;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+ul li {
+  margin-bottom: 0.3rem;
+  text-align: left;
+}
+
+h3 {
+  margin-top: 2rem;
+}
+ul li button {
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+button:has(svg), button:has(img) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+button {
+  margin: 0.5rem;
+}
+
+body {
+  background-color: #1a1a1a;
 }
