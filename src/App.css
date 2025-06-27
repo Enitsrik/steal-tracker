@@ -47,3 +47,10 @@ button {
   border-radius: 5px;
   cursor: pointer;
 }
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
