@@ -1,49 +1,33 @@
 import { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "./firebase";
 
-const users = [
-  { username: "admin", password: "hemmelig", role: "admin" },
-  { username: "tracker", password: "1234", role: "user" }
-];
-
-export default function Login({ onLogin }) {
-  const [username, setUsername] = useState("");
+function Login({ onLogin }) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const user = users.find(
-      (u) => u.username === username && u.password === password
-    );
-    if (user) {
-      localStorage.setItem("loggedInUser", JSON.stringify(user));
-      onLogin(user);
-    } else {
-      setError("Wrong Username or code");
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      onLogin(); // signaler til App at vi er logget ind
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>🔐 Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <br /><br />
-        <input
-          type="password"
-          placeholder="Adgangskode"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <br /><br />
+    <div>
+      <h2>Log ind</h2>
+      <form onSubmit={handleLogin}>
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="password" placeholder="Kodeord" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <button type="submit">Log ind</button>
-        {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
+
+export default Login;

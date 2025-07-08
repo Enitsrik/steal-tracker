@@ -1,152 +1,97 @@
 import { useState, useEffect } from "react";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  updateDoc,
-  orderBy,
-  query,
-} from "firebase/firestore";
-import { db } from "./firebase";
-import "./App.css";
+import { db, auth } from "./firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { collection, addDoc, getDocs, setDoc, doc } from "firebase/firestore";
+import Login from "./Login";
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState("");
   const [steals, setSteals] = useState([]);
-  const [name, setName] = useState("");
-  const [type, setType] = useState("Treasure");
-  const [amount, setAmount] = useState("");
-  const [customTime, setCustomTime] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState("user");
 
+  // Hent nuværende bruger
   useEffect(() => {
-    const fetchSteals = async () => {
-      const q = query(collection(db, "steals"), orderBy("timestamp"));
-      const data = await getDocs(q);
-      setSteals(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    };
+    onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
 
-    fetchSteals();
+        // Find rolle i Firestore
+        const querySnapshot = await getDocs(collection(db, "users"));
+        const userDoc = querySnapshot.docs.find(doc => doc.id === currentUser.uid);
+        if (userDoc) {
+          setRole(userDoc.data().role);
+        }
+      } else {
+        setUser(null);
+        setRole("");
+      }
+    });
   }, []);
 
+  // Tilføj ny bruger
+  const handleAddUser = async () => {
+    if (!newEmail) return alert("Indtast email");
+
+    // Lav unik ID (fx bruger email som id)
+    const id = newEmail.replace(/[@.]/g, "_");
+
+    await setDoc(doc(db, "users", id), {
+      email: newEmail,
+      role: newRole
+    });
+    alert("Bruger tilføjet!");
+    setNewEmail("");
+    setNewRole("user");
+  };
+
+  // Tilføj steal
   const handleAddSteal = async () => {
-    if (!name) return alert("Indtast et spillernavn!");
-    if (type === "Treasure" && (!amount || isNaN(amount))) {
-      alert("Angiv beløb for treasure!");
-      return;
-    }
-
-    let now = new Date();
-    if (customTime) {
-      now = new Date(customTime);
-    }
-
-    // Justér 9 timer bagud
-    const adjustedTime = new Date(now.getTime() - 9 * 60 * 60 * 1000);
-
-    const newSteal = {
-      name,
-      type,
-      amount: type === "Treasure" ? parseInt(amount) : 0,
-      timestamp: adjustedTime.toISOString(),
-    };
-
-    const docRef = await addDoc(collection(db, "steals"), newSteal);
-    setSteals((prev) => [...prev, { ...newSteal, id: docRef.id }]);
-
-    setName("");
-    setAmount("");
-    setCustomTime("");
+    await addDoc(collection(db, "steals"), {
+      user: user.email,
+      amount: 500,
+      type: "Treasure",
+      timestamp: new Date()
+    });
+    alert("Steal tilføjet!");
   };
 
-  const handleDelete = async (id) => {
-    await deleteDoc(doc(db, "steals", id));
-    setSteals((prev) => prev.filter((s) => s.id !== id));
-  };
-
-  const handleUpdate = async (id, updatedSteal) => {
-    await updateDoc(doc(db, "steals", id), updatedSteal);
-    setSteals((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updatedSteal } : s))
-    );
-  };
-
-  const validSteals = steals.filter((s) => !s.tooSoon);
-  const treasureCount = validSteals.filter((s) => s.type === "Treasure").length;
-  const bottleCount = validSteals.filter((s) => s.type === "Bottle").length;
-  const totalTreasure = validSteals
-    .filter((s) => s.type === "Treasure")
-    .reduce((sum, s) => sum + s.amount, 0);
+  if (!user) return <Login onLogin={() => window.location.reload()} />;
 
   return (
     <div className="container">
-      <h1>💰 Steal Tracker</h1>
-      <p className="subtext">Pass or Steal!</p>
+      <h1>Steal Tracker</h1>
+      <p>Velkommen, {user.email} ({role})</p>
+      <button onClick={() => signOut(auth)}>Log ud</button>
 
-      <div className="input-group">
-        <input
-          placeholder="Spillernavn"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <select value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="Treasure">Treasure</option>
-          <option value="Bottle">Broken Bottle</option>
-        </select>
-        {type === "Treasure" && (
+      {role === "admin" && (
+        <div style={{ marginTop: "2rem" }}>
+          <h3>➕ Tilføj ny bruger (admin eller co-admin)</h3>
           <input
-            type="number"
-            placeholder="Beløb (f.eks. 500)"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            type="email"
+            placeholder="Bruger email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
           />
-        )}
-        <input
-          type="datetime-local"
-          value={customTime}
-          onChange={(e) => setCustomTime(e.target.value)}
-        />
-        <button onClick={handleAddSteal}>Tilføj</button>
+          <select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
+            <option value="admin">Admin</option>
+            <option value="co-admin">Co-admin</option>
+            <option value="user">User</option>
+          </select>
+          <button onClick={handleAddUser}>Tilføj bruger</button>
+
+          <h3>💰 Tilføj Steal</h3>
+          <button onClick={handleAddSteal}>Tilføj 500 treasure</button>
+        </div>
+      )}
+
+      <div style={{ marginTop: "2rem" }}>
+        <h3>📄 Log</h3>
+        {steals.length === 0 ? <p>Ingen steals endnu.</p> : steals.map((s, i) => (
+          <div key={i}>{s.user} stole {s.amount} ({s.type})</div>
+        ))}
       </div>
-
-      <h2>📊 Statistik</h2>
-      <p>Treasure steals: {treasureCount}</p>
-      <p>Broken Bottles: {bottleCount}</p>
-      <p>Totalt treasure stjålet: {totalTreasure}t</p>
-      <p>Totalt antal gyldige steals: {validSteals.length}</p>
-
-      <h2>📋 Log</h2>
-      <ul>
-        {[...steals]
-          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-          .map((s) => (
-            <li key={s.id}>
-              <strong>{s.name}</strong> stole {s.amount} ({s.type}) –{" "}
-              {new Date(s.timestamp).toLocaleString()}
-              <button
-                onClick={() => {
-                  const newName = prompt("Nyt navn:", s.name);
-                  const newAmount =
-                    s.type === "Treasure"
-                      ? prompt("Nyt beløb:", s.amount)
-                      : 0;
-                  const newTime = prompt(
-                    "Ny tid (ISO format):",
-                    s.timestamp
-                  );
-                  handleUpdate(s.id, {
-                    name: newName || s.name,
-                    amount: s.type === "Treasure" ? parseInt(newAmount) : 0,
-                    timestamp: newTime || s.timestamp,
-                  });
-                }}
-              >
-                Rediger
-              </button>
-              <button onClick={() => handleDelete(s.id)}>Slet</button>
-            </li>
-          ))}
-      </ul>
     </div>
   );
 }
