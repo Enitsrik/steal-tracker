@@ -1,52 +1,74 @@
 import { useState, useEffect } from "react";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  orderBy,
+  query,
+} from "firebase/firestore";
+import { db } from "./firebase";
+import "./App.css";
 
 function App() {
-  const [steals, setSteals] = useState(() => {
-    const saved = localStorage.getItem("steals");
-    return saved ? JSON.parse(saved) : [];
-  });
-
+  const [steals, setSteals] = useState([]);
   const [name, setName] = useState("");
   const [type, setType] = useState("Treasure");
   const [amount, setAmount] = useState("");
+  const [customTime, setCustomTime] = useState("");
 
   useEffect(() => {
-    localStorage.setItem("steals", JSON.stringify(steals));
-  }, [steals]);
+    const fetchSteals = async () => {
+      const q = query(collection(db, "steals"), orderBy("timestamp"));
+      const data = await getDocs(q);
+      setSteals(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    };
 
-  const addSteal = () => {
-    const now = new Date();
-    const cooldown = steals.find(
-      (s) =>
-        s.name.toLowerCase() === name.toLowerCase() &&
-        now - new Date(s.timestamp) < 1000 * 60 * 60 * 24 &&
-        !s.tooSoon
-    );
+    fetchSteals();
+  }, []);
 
-    const tooSoon = Boolean(cooldown);
-
-    if (tooSoon) {
-      alert("Denne spiller har allerede stjålet inden for de sidste 24 timer!");
-    }
-
+  const handleAddSteal = async () => {
+    if (!name) return alert("Indtast et spillernavn!");
     if (type === "Treasure" && (!amount || isNaN(amount))) {
-      alert("Angiv venligst hvor meget treasure der blev stjålet.");
+      alert("Angiv beløb for treasure!");
       return;
     }
 
-    setSteals((prev) => [
-      ...prev,
-      {
-        name,
-        type,
-        amount: type === "Treasure" ? parseInt(amount) : 0,
-        timestamp: now.toISOString(),
-        tooSoon,
-      },
-    ]);
+    let now = new Date();
+    if (customTime) {
+      now = new Date(customTime);
+    }
+
+    // Justér 9 timer bagud
+    const adjustedTime = new Date(now.getTime() - 9 * 60 * 60 * 1000);
+
+    const newSteal = {
+      name,
+      type,
+      amount: type === "Treasure" ? parseInt(amount) : 0,
+      timestamp: adjustedTime.toISOString(),
+    };
+
+    const docRef = await addDoc(collection(db, "steals"), newSteal);
+    setSteals((prev) => [...prev, { ...newSteal, id: docRef.id }]);
 
     setName("");
     setAmount("");
+    setCustomTime("");
+  };
+
+  const handleDelete = async (id) => {
+    await deleteDoc(doc(db, "steals", id));
+    setSteals((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleUpdate = async (id, updatedSteal) => {
+    await updateDoc(doc(db, "steals", id), updatedSteal);
+    setSteals((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...updatedSteal } : s))
+    );
   };
 
   const validSteals = steals.filter((s) => !s.tooSoon);
@@ -56,53 +78,35 @@ function App() {
     .filter((s) => s.type === "Treasure")
     .reduce((sum, s) => sum + s.amount, 0);
 
-  const exportCSV = () => {
-    const header = "Name,Type,Amount,Timestamp,TooSoon\n";
-    const rows = steals
-      .map((s) => `${s.name},${s.type},${s.amount},${s.timestamp},${s.tooSoon}`)
-      .join("\n");
-    const blob = new Blob([header + rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "steals.csv";
-    a.click();
-  };
-
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+    <div className="container">
       <h1>💰 Steal Tracker</h1>
+      <p className="subtext">Pass or Steal!</p>
 
-      <div style={{ marginBottom: "1rem" }}>
+      <div className="input-group">
         <input
           placeholder="Spillernavn"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ padding: "0.5rem", marginRight: "0.5rem" }}
         />
-
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-        >
+        <select value={type} onChange={(e) => setType(e.target.value)}>
           <option value="Treasure">Treasure</option>
           <option value="Bottle">Broken Bottle</option>
         </select>
-
         {type === "Treasure" && (
           <input
             type="number"
             placeholder="Beløb (f.eks. 500)"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            style={{ padding: "0.5rem", marginRight: "0.5rem" }}
           />
         )}
-
-        <button onClick={addSteal} style={{ padding: "0.5rem" }}>
-          Tilføj
-        </button>
+        <input
+          type="datetime-local"
+          value={customTime}
+          onChange={(e) => setCustomTime(e.target.value)}
+        />
+        <button onClick={handleAddSteal}>Tilføj</button>
       </div>
 
       <h2>📊 Statistik</h2>
@@ -110,22 +114,36 @@ function App() {
       <p>Broken Bottles: {bottleCount}</p>
       <p>Totalt treasure stjålet: {totalTreasure}t</p>
       <p>Totalt antal gyldige steals: {validSteals.length}</p>
-      <p>Antal forsøg for tidligt: {steals.filter((s) => s.tooSoon).length}</p>
 
-      <button onClick={exportCSV} style={{ marginTop: "1rem", padding: "0.5rem" }}>
-        📤 Eksportér som CSV
-      </button>
-
-      <h2 style={{ marginTop: "2rem" }}>📋 Log</h2>
+      <h2>📋 Log</h2>
       <ul>
         {[...steals]
           .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-          .map((s, i) => (
-            <li key={i} style={{ color: s.tooSoon ? "red" : "black" }}>
-              <strong>{s.name}</strong> stole {s.amount} ({s.type}) – {new Date(s.timestamp).toLocaleString()}
-              <button style={{ marginLeft: "0.5rem" }}>Rediger</button>
-              <button style={{ marginLeft: "0.5rem" }}>Slet</button>
-              {s.tooSoon && " ❌ (for tidligt!)"}
+          .map((s) => (
+            <li key={s.id}>
+              <strong>{s.name}</strong> stole {s.amount} ({s.type}) –{" "}
+              {new Date(s.timestamp).toLocaleString()}
+              <button
+                onClick={() => {
+                  const newName = prompt("Nyt navn:", s.name);
+                  const newAmount =
+                    s.type === "Treasure"
+                      ? prompt("Nyt beløb:", s.amount)
+                      : 0;
+                  const newTime = prompt(
+                    "Ny tid (ISO format):",
+                    s.timestamp
+                  );
+                  handleUpdate(s.id, {
+                    name: newName || s.name,
+                    amount: s.type === "Treasure" ? parseInt(newAmount) : 0,
+                    timestamp: newTime || s.timestamp,
+                  });
+                }}
+              >
+                Rediger
+              </button>
+              <button onClick={() => handleDelete(s.id)}>Slet</button>
             </li>
           ))}
       </ul>
